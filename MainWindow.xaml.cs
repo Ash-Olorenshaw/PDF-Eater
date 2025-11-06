@@ -74,20 +74,44 @@ public partial class MainWindow : Window {
 	}
 
 	private void PagesPanel_OnManipulationDelta(object? sender, ManipulationDeltaEventArgs e) {
-		double scaleDelta = e.DeltaManipulation.Scale.X;
-		double newScroll = PagesPanelScrollViewer.VerticalOffset - e.DeltaManipulation.Translation.Y;
+		if (e.Manipulators.Count() == 1) {
+			double newScrollY = PagesPanelScrollViewer.VerticalOffset - e.DeltaManipulation.Translation.Y;
+			double newScrollX = PagesPanelScrollViewer.HorizontalOffset - e.DeltaManipulation.Translation.X;
+			PagesPanelScrollViewer.ScrollToVerticalOffset(newScrollY > 0 ? newScrollY : 0);
+			PagesPanelScrollViewer.ScrollToHorizontalOffset(newScrollX > 0 ? newScrollX : 0);
+			e.Handled = true;
+		}
+		else {
+			double scaleDelta = e.DeltaManipulation.Scale.X;
+			if (Math.Abs(scaleDelta - 1.0) < 0.001)
+				return;
 
-		if (newScroll > 0) 
-			PagesPanelScrollViewer.ScrollToVerticalOffset(newScroll);
-		else
-			PagesPanelScrollViewer.ScrollToVerticalOffset(0);
+			double oldScale = PagesPanelZoomTransform.ScaleX;
+			double newScale = Math.Max(0.1, Math.Min(10.0, oldScale * scaleDelta));
+			double zoomFactor = newScale / oldScale;
 
-		double newScale = PagesPanelZoomTransform.ScaleX * scaleDelta;
-		newScale = Math.Max(0.1, Math.Min(10.0, newScale));
+			var viewport = PagesPanelScrollViewer;
 
-		PagesPanelZoomTransform.ScaleX = newScale;
-		PagesPanelZoomTransform.ScaleY = newScale;
-		e.Handled = true;
+			double viewportHeight = viewport.ViewportHeight;
+			double viewportWidth = viewport.ViewportWidth;
+
+			double centerX = viewport.HorizontalOffset + viewportWidth / 2;
+			double centerY = viewport.VerticalOffset + viewportHeight / 2;
+
+			PagesPanelZoomTransform.ScaleX = newScale;
+			PagesPanelZoomTransform.ScaleY = newScale;
+
+			double newOffsetX = (centerX * zoomFactor) - (viewportWidth / 2);
+			double newOffsetY = (centerY * zoomFactor) - (viewportHeight / 2);
+
+			newOffsetX = Math.Max(0, Math.Min(viewport.ExtentWidth - viewportWidth, newOffsetX));
+			newOffsetY = Math.Max(0, Math.Min(viewport.ExtentHeight - viewportHeight, newOffsetY));
+
+			viewport.ScrollToHorizontalOffset(newOffsetX);
+			viewport.ScrollToVerticalOffset(newOffsetY);
+
+			e.Handled = true;
+		}
 	}
 
 

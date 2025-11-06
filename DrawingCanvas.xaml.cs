@@ -48,6 +48,11 @@ public partial class DrawingCanvas : Grid {
 	public DrawingCanvas() {
 		InitializeComponent();
 		inkCanvas.DefaultDrawingAttributes = currentDrawingAttrs;
+		this.RequestBringIntoView += Grid_RequestBringIntoView;
+	}
+
+	private void Grid_RequestBringIntoView(object sender, RequestBringIntoViewEventArgs e) {
+		e.Handled = true;
 	}
 
 	private void InkCanvas_TouchAction(object sender, TouchEventArgs e) {
