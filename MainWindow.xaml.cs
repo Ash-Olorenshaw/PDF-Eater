@@ -183,6 +183,11 @@ public partial class MainWindow : Window {
 		}
 	}
 
+	//BtnRuleSnapping_Click
+	private void BtnRuleSnapping_Click(object sender, RoutedEventArgs e) {
+		Globals.sketchSnapping = !Globals.sketchSnapping;
+	}
+
 	private void BtnColor_Click(object sender, RoutedEventArgs e) {
 		colorPopup.IsOpen = true;
 		FlyoutCreator.UpdateColorFlyout(ref colorPopup);
